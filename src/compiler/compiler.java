@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 public class compiler {
 	public static void main(String[] args) throws IOException{
-		BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\亭臻\\Desktop\\test.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\亭臻\\Desktop\\test2.txt"));
 		ArrayList<String> CFG = new ArrayList<String>();
 		ArrayList<String> leftHand = new ArrayList<String>();
 		ArrayList<String> rightHand = new ArrayList<String>();
@@ -23,8 +23,11 @@ public class compiler {
 			leftHand.add(temp[1]);
 			terMinal.addAll(findTerminal(temp));
 		}
-		terMinal.add(terMinal.get(0));	//把$移到最後一個
-		terMinal.remove(0);
+		for(int i=0; i<terMinal.size(); i++){	//把$移到最後一個
+			if(terMinal.get(i).equals("$"))	
+				terMinal.remove(i);
+		}
+		terMinal.add("$");
 		
 		String[][] table = new String[leftHand.size()+1][terMinal.size()+1];
 		String[][] first = new String[2][terMinal.size()+1];
@@ -50,6 +53,8 @@ public class compiler {
 			table[0][i+1] = terMinal.get(i);
 		}
 		for(int i=0; i<CFG.size(); i++){	//取first set
+			System.out.println("test11");
+			System.out.println(i);
 			for(int k=0; k<terMinal.size()+1; k++){	//歸0
 				first[1][k] = "0";
 			}
@@ -60,11 +65,11 @@ public class compiler {
 			String[] temp,temp2;
 			temp = First(righttemp[1],terMinal,rightHand,leftHand,first);	//求first set 並且判斷會不會deriveEmpty
 			
-//			for(int k=0; k<temp.length; k++){
-//				System.out.print(temp[k]+ " ");
-//			}
-//			System.out.println();
-//			System.out.println();
+			for(int k=0; k<temp.length; k++){
+				System.out.print(temp[k]+ " ");
+			}
+			System.out.println();
+			System.out.println();
 			
 			if(temp[temp.length-1].equals("1")){					//如果會DeriveEmpty就呼叫Follow
 				int check = i;
@@ -72,6 +77,7 @@ public class compiler {
 					check--;
 				}
 				System.out.println("test10");
+				System.out.println(leftHand.get(check));
 				temp2 = Follow(leftHand.get(check),terMinal,rightHand,leftHand,first,duplicateOrNot);	//傳進去的參數已經是lefthand
 //				for(int k=0; k<temp.length; k++){
 //					System.out.print(temp2[k]+ " ");
@@ -113,35 +119,59 @@ public class compiler {
 		char alphabet = Letter.charAt(0);			//第一個字的第一個字母
 		if(alphabet >= 65 && alphabet <= 90){		//第一次的判斷
 			link = lefthand.indexOf(Letter);		//若是Non-terminal 則找lefthandside看它在第幾個
-			for(int i=link+1; lefthand.get(i).equals("|"); i++)		//找出Non-terminal 有幾個rules
+			System.out.println(Letter);
+			for(int i=link+1; lefthand.get(i).equals("|"); i++){		//找出Non-terminal 有幾個rules
 				rule++;
-			
-			for(int i=link; i<link+rule; i++){			//把righthand 換成rule 並存進cal 裡面
-				cal.add(righthandrule.get(i).concat(" ").concat(rightWithOutBlank[2]));  
+				if((i+1) == lefthand.size())
+					break;
 			}
-		
+			System.out.println(rule);
+			for(int i=link; i<link+rule; i++){			//把righthand 換成rule 並存進cal 裡面
+				if(rightWithOutBlank.length == 2)		//判斷rule 是否只有1項
+					cal.add(righthandrule.get(i));
+				else
+					cal.add(righthandrule.get(i).concat(" ").concat(rightWithOutBlank[2]));
+
+			}
+			for(int i=0; i<cal.size(); i++){
+				System.out.println("test15");
+				System.out.println(cal.get(i));
+			}
 			for(int i=0; i<cal.size(); i++){		//把cal 裡面的東西做第二次判斷
 				temp = cal.get(i).split(" ",3);
-				
+				System.out.println("test4");
 				if(cal.get(i).charAt(1) < 65 || cal.get(i).charAt(1) > 90 && !(temp[1].equals("lamda"))){		//非大寫
+					System.out.println("test12");
 					for(int j=0; j<terminal.size(); j++){
 						if(temp[1].equals(First[0][j]))
 							First[1][j] = "1";
 					}
-//					for(int k=0; k<terminal.size(); k++){
-//						System.out.println(First[1][k]);
-//					}
-					
-				}else if(temp[1].equals("lamda")){
+					for(int k=0; k<terminal.size()+1; k++){
+						System.out.print(First[1][k] + " ");
+					}
+					System.out.println();
+					System.out.println(temp.length);
+				}else if(temp[1].equals("lamda") && temp.length != 2){	//確定為lamda 且後面有東西
+					System.out.println("test2");
 					cal.set(i , cal.get(i).substring(6, cal.get(i).length()));
 					First(cal.get(i),terminal,righthandrule,lefthand,First);
 				}else{
+					System.out.println("test3");
 					First(cal.get(i),terminal,righthandrule,lefthand,First);
 				}
-			}
+//				System.out.println(i);
+//				System.out.println(cal.size());
+//				System.out.println(temp[1] + " " + temp.length);
+//				if(i == cal.size()-1 && temp[1].equals("lamda") && temp.length == 2){	判斷
+//					System.out.println("test14");
+//					First[1][terminal.size()] = "1";
+//				}
+			} 
 		}else if(rightWithOutBlank[1].equals("lamda")){
+			System.out.println("test16");
 			First[1][terminal.size()] = "1";
 		}else{										//第一次判斷就成功
+			System.out.println("test17");
 			for(int i=0; i<terminal.size(); i++){
 				if(Letter.equals(First[0][i])){
 					First[1][i] = "1";
@@ -156,8 +186,11 @@ public class compiler {
 		char alphabet = righthand.charAt(0);		//righthand的第一個字母
 		if(alphabet >= 65 && alphabet <= 90){		//第一次的判斷 是不是大寫
 			link = lefthand.indexOf(righthand);		//若是Non-terminal 則找lefthandside看它在第幾個
-			for(int i=link+1; lefthand.get(i).equals("|"); i++)		//找出Non-terminal 有幾個rules
+			for(int i=link+1; lefthand.get(i).equals("|"); i++){		//找出Non-terminal 有幾個rules
 				rule++;
+				if((i+1) == lefthand.size())
+					break;
+			}
 			for(int i=link; i<link+rule; i++){
 				if(righthandrule.get(i).equals("lamda"))
 					answer = true;
@@ -186,22 +219,24 @@ public class compiler {
 			for(int j=temp.length; j<50; j++)					//其他沒有righthand的地方存 0
 				allRightItem[i][j] = "0";
 		}
-		System.out.println("test3");
+		System.out.println("test15");
 		for(int i=0; i<righthandrule.size(); i++){
 			for(int j=0; j<righthandrule.get(i).length(); j++){
 				if(righthand.equals(allRightItem[i][j])){	//找到要follow的item
+					String addBlank="";
 					System.out.println("test4");
 					if(!(allRightItem[i][j+1].equals("0"))){	//righthand的後面還有東西
 						System.out.println("test5");
-						String addBlank = "".concat(" ").concat(allRightItem[i][j+1]);
+						for(int k=j+1; !(allRightItem[i][k].equals("0")); k++)
+							addBlank += "".concat(" ").concat(allRightItem[i][k]);
 						System.out.println(addBlank);
 						follow[1] = First(addBlank,terminal,righthandrule,lefthand,follow);
-						System.out.println("test2");
+						System.out.println("test13");
 					}
-//					for(int k=0; k<terminal.size()+1; k++){
-//						System.out.print(follow[1][k] + " ");
-//					}
-//					System.out.println();
+					for(int k=0; k<terminal.size()+1; k++){
+						System.out.print(follow[1][k] + " ");
+					}
+					System.out.println();
 					if(allRightItem[i][j+1].equals("0") || CheckDerive(allRightItem[i][j+1],righthandrule,lefthand)){	//righthand最後一項 或是 後面一項會DeriveEmpty
 						System.out.println("test6");
 						int count = i;
